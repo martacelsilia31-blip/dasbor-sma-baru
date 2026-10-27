@@ -1,0 +1,54 @@
+<!DOCTYPE html> <!-- Menandakan dokumen menggunakan format HTML5 -->
+<html lang="id"> <!-- Mengatur bahasa halaman ke Bahasa Indonesia -->
+<head>
+    <meta charset="UTF-8"> <!-- Mengatur standar karakter teks agar tampil normal -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- Membuat tampilan pas di HP dan Laptop -->
+    <title>Dashboard Tugas & Jadwal</title> <!-- Judul yang muncul di tab browser -->
+    
+    <!-- Menghubungkan file stylesheet CSS eksternal -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- Kontainer Utama Aplikasi -->
+    <div class="container">
+        <!-- JUDUL UTAMA -->
+        <h2>📚 Study & Personal Dashboard</h2>
+        <p class="subtitle">Catat tugas sekolah, jadwal kelompok, dan pantau deadline dengan mudah.</p>
+
+        <!-- TOMBOL PILIH MODE (Kelompok vs Individu) -->
+        <div class="mode-bar">
+            <button id="btnGroup" class="mode-btn active" onclick="setMode('kelompok')">👥 Tugas Kelompok</button>
+            <button id="btnPersonal" class="mode-btn" onclick="setMode('individu')">👤 Tugas Individu</button>
+        </div>
+
+        <!-- FORM INPUT TAMBAH TUGAS BARU -->
+        <div class="form-box">
+            <h4>➕ Tambah Tugas Baru</h4>
+            <input type="text" id="inputTitle" placeholder="Nama Tugas / PR (Contoh: PR Matematika)">
+            
+            <select id="inputSubject">
+                <option value="Matematika">Matematika</option>
+                <option value="Fisika">Fisika</option>
+                <option value="Biologi">Biologi</option>
+                <option value="Bahasa Inggris">Bahasa Inggris</option>
+                <option value="Sejarah">Sejarah</option>
+            </select>
+            
+            <input type="datetime-local" id="inputDeadline"> <!-- Input tanggal & jam deadline -->
+            <input type="text" id="inputLink" placeholder="Link Dokumen / Google Drive (Opsional)">
+            
+            <button class="btn-add" onclick="addNewTask()">Simpan Tugas</button>
+        </div>
+
+        <!-- DAFTAR KARTU TUGAS AKAN MUNCUL DI SINI -->
+        <h3>Daftar Tugas (<span id="modeTitle">Kelompok</span>)</h3>
+        <div id="taskList">
+            <!-- Data tugas dirender otomatis oleh JavaScript dari localStorage -->
+        </div>
+    </div>
+
+    <!-- Menghubungkan file JavaScript eksternal -->
+    <script src="script.js"></script>
+</body>
+  </html>
