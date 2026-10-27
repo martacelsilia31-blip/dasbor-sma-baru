@@ -3,11 +3,26 @@ let currentMode = 'kelompok';
 
 // 2. Mengambil data tugas dari memori browser (localStorage) atau menggunakan data awal jika kosong
 let tasks = JSON.parse(localStorage.getItem('simple_tasks')) || [
-    { id: 1, title: "Laporan Praktikum Biologi", subject: "Biologi", category: "kelompok", deadline: "2026-10-30T10:00", link: "https://docs.google.com" },
-    { id: 2, title: "Mengerjakan PR Bab Turunan", subject: "Matematika", category: "individu", deadline: "2026-10-28T20:00", link: "" }
+    { id: 1, title: "Laporan Praktikum Biologi", subject: "Biologi", category: "kelompok", deadline: "2026-10-30T10:00", link: "https://docs.google.com", notified: false },
+    { id: 2, title: "Mengerjakan PR Bab Turunan", subject: "Matematika", category: "individu", deadline: "2026-10-28T20:00", link: "", notified: false }
 ];
 
-// 3. Fungsi untuk berpindah mode (Kelompok vs Individu)
+// 3. Jalankan pengecekan dan minta izin notifikasi saat halaman pertama kali dibuka
+document.addEventListener('DOMContentLoaded', () => {
+    requestNotificationPermission();
+    
+    // Cek deadline setiap 1 detik secara real-time
+    setInterval(checkDeadlines, 1000);
+});
+
+// 4. Meminta izin pengguna untuk menampilkan notifikasi browser
+function requestNotificationPermission() {
+    if ("Notification" in window && Notification.permission !== "granted" && Notification.permission !== "denied") {
+        Notification.requestPermission();
+    }
+}
+
+// 5. Fungsi untuk berpindah mode (Kelompok vs Individu)
 function setMode(mode) {
     currentMode = mode;
     
@@ -21,7 +36,7 @@ function setMode(mode) {
     renderTasks(); // Tampilkan ulang daftar tugas sesuai mode yang dipilih
 }
 
-// 4. Fungsi Menambah Tugas Baru dari Form Input
+// 6. Fungsi Menambah Tugas Baru dari Form Input
 function addNewTask() {
     let title = document.getElementById('inputTitle').value;
     let subject = document.getElementById('inputSubject').value;
@@ -41,7 +56,8 @@ function addNewTask() {
         subject: subject,
         category: currentMode, // Mengikuti mode yang sedang dibuka saat ini
         deadline: deadline,
-        link: link
+        link: link,
+        notified: false // Status untuk mencegah notifikasi terkirim berulang-ulang
     };
 
     tasks.push(newTask); // Memasukkan tugas baru ke dalam array tasks
@@ -53,19 +69,48 @@ function addNewTask() {
     document.getElementById('inputDeadline').value = '';
 }
 
-// 5. Fungsi Menghapus Tugas Berdasarkan ID
+// 7. Fungsi Menghapus Tugas Berdasarkan ID
 function deleteTask(id) {
     tasks = tasks.filter(task => task.id !== id); // Memfilter dan membuang tugas yang id-nya cocok
     saveAndRender();
 }
 
-// 6. Menyimpan Data ke LocalStorage Browser dan Refresh Tampilan
+// 8. Menyimpan Data ke LocalStorage Browser dan Refresh Tampilan
 function saveAndRender() {
     localStorage.setItem('simple_tasks', JSON.stringify(tasks));
     renderTasks();
 }
 
-// 7. Fungsi Utama Menampilkan Daftar Tugas ke Layar (Dilengkapi Pengecekan Deadline Mepet)
+// 9. Fungsi Pengecekan Deadline & Memunculkan Notifikasi Pop-up Sistem
+function checkDeadlines() {
+    let now = new Date().getTime();
+
+    tasks.forEach(task => {
+        let deadlineTime = new Date(task.deadline).getTime();
+        let timeLeft = deadlineTime - now;
+        let hoursLeft = timeLeft / (1000 * 60 * 60); // Sisa waktu dalam jam
+
+        // Jika sisa waktu kurang dari 24 jam dan belum pernah dinotifikasi
+        if (hoursLeft > 0 && hoursLeft < 24 && !task.notified) {
+            
+            // Munculkan Pop-up Notifikasi Browser (jika diizinkan)
+            if ("Notification" in window && Notification.permission === "granted") {
+                new Notification("⚠️ Peringatan Deadline Tugas!", {
+                    body: `Tugas "${task.title}" (${task.subject}) akan segera deadline dalam waktu sekitar ${Math.floor(hoursLeft)} jam lagi!`,
+                    icon: "https://cdn-icons-png.flaticon.com/512/2921/2921222.png"
+                });
+            }
+
+            // Tandai bahwa tugas ini sudah dikirimi notifikasi agar tidak spam
+            task.notified = true;
+            saveAndRender();
+        }
+    });
+
+    renderTasks(); // Perbarui tampilan kartu di layar
+}
+
+// 10. Fungsi Utama Menampilkan Daftar Tugas ke Layar
 function renderTasks() {
     let listContainer = document.getElementById('taskList');
     listContainer.innerHTML = ''; // Mengosongkan kontainer sebelum diisi ulang
@@ -117,6 +162,3 @@ function renderTasks() {
 
 // Menjalankan fungsi renderTasks() saat halaman pertama kali dibuka
 renderTasks();
-
-// Otomatis memperbarui perhitungan jam deadline setiap 1 menit
-setInterval(renderTasks, 60000);
